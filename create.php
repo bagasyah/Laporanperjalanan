@@ -74,7 +74,12 @@
             </div>
             <div class="form-group">
                 <label for="tipe_mobil">Tipe Mobil:</label>
-                <input type="text" class="form-control" id="tipe_mobil" name="tipe_mobil" required>
+                <select class="form-control" id="tipe_mobil" name="tipe_mobil" required>
+                    <option value="innova">Innova</option>
+                    <option value="avanza veloz">Avanza Veloz</option>
+                    <option value="triton">Triton</option>
+                    <option value="avanza putih">Avanza Putih</option>
+                </select>
             </div>
             <div class="form-group">
                 <label for="lampu_depan">Lampu Depan:</label><br>

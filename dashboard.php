@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Laporan Perjalanan</title>
+    <title>SAFETY DRIVE</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
@@ -47,13 +47,6 @@
         }
 
         /* Atur margin pada form pencarian */
-
-        /* Atur margin pada tombol search */
-
-        .search-form input[type="text"] {
-            width: 100%;
-        }
-
         .search-form {
             margin-bottom: 20px;
         }
@@ -102,7 +95,7 @@
         <a class="navbar-brand" href="dashboard.php">
             <img src="assets/pgn.png" width="130" height="30" class="mr-2">
             <span class="separator"></span>
-            LAPORAN PERJALANAN
+            SAFETY DRIVE
         </a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -154,9 +147,36 @@
                 echo "<p>Total Jarak Tempuh: $total_km KM</p>";
             }
 
+            $tanggal_awal = $_GET['tanggal_awal'] ?? '';
+            $tanggal_akhir = $_GET['tanggal_akhir'] ?? '';
+
             $query = "SELECT * FROM laporan WHERE user_id='$user_id'";
+
+            if (!empty($tanggal_awal) && !empty($tanggal_akhir)) {
+                $query .= " AND tanggal BETWEEN '$tanggal_awal' AND '$tanggal_akhir'";
+            }
+
             $result = $conn->query($query);
+
             echo "<h2>Laporan Perjalanan</h2>";
+
+            echo "<div class='search-form'>";
+            echo "<form method='GET' action='dashboard.php'>";
+            echo "<div class='form-row'>";
+            echo "<div class='form-group col-md-6'>";
+            echo "<label for='tanggal_awal'>Tanggal Awal:</label>";
+            echo "<input type='date' class='form-control' name='tanggal_awal' id='tanggal_awal' value='$tanggal_awal'>";
+            echo "</div>";
+            echo "<div class='form-group col-md-6'>";
+            echo "<label for='tanggal_akhir'>Tanggal Akhir:</label>";
+            echo "<input type='date' class='form-control' name='tanggal_akhir' id='tanggal_akhir' value='$tanggal_akhir'>";
+            echo "</div>";
+            echo "</div>";
+            echo "<button class='btn btn-primary' type='submit'>Search</button>";
+            echo "<button class='btn btn-danger ml-1' type='reset' onclick='window.location.href=\"dashboard.php\"'>Reset</button>";
+            echo "</form>";
+            echo "</div>";
+
             if ($result->num_rows > 0) {
                 echo "<div class='table-responsive'>";
                 echo "<table class='table'>";
@@ -168,8 +188,8 @@
                 echo "<th>KM Awal</th>";
                 echo "<th>KM Akhir</th>";
                 echo "<th>Total KM</th>";
-                echo "<th>No Polisi</th>";
-                echo "<th>Tipe Mobil</th>";
+                echo "<th>Jenis Perjalanan</th>";
+                echo "<th>Perkiraan BBM</th>";
                 echo "<th>Foto KM Awal</th>";
                 echo "<th>Foto KM Akhir</th>";
                 //echo "<th>Status</th>";
@@ -184,13 +204,37 @@
                     echo "<td>" . $row['alamat_tujuan'] . "</td>";
                     echo "<td>" . $row['km_awal'] . "</td>";
                     echo "<td>" . $row['km_akhir'] . "</td>";
-                    $total_km = $row['km_akhir'] - $row['km_awal']; // Menghitung total km
+                    $total_km = $row['km_akhir'] - $row['km_awal'];
                     echo "<td>" . $total_km . "</td>";
-                    echo "<td>" . $row['no_polisi'] . "</td>";
-                    echo "<td>" . $row['tipe_mobil'] . "</td>";
+                    echo "<td>" . $row['jenis_perjalanan'] . "</td>";
+                    // Perhitungan perkiraan BBM berdasarkan jenis perjalanan dan tipe mobil
+                    $jenis_perjalanan = $row['jenis_perjalanan'];
+                    $tipe_mobil = $row['tipe_mobil'];
+                    $perkiraan_bbm = 0;
+
+                    if ($jenis_perjalanan == 'luar' && $tipe_mobil == 'innova') {
+                        $bbm_per_km = 1 / 8;
+                    } elseif ($jenis_perjalanan == 'dalam' && $tipe_mobil == 'innova') {
+                        $bbm_per_km = 1 / 10;
+                    } elseif ($jenis_perjalanan == 'luar' && $tipe_mobil == 'avanza veloz') {
+                        $bbm_per_km = 1 / 10;
+                    } elseif ($jenis_perjalanan == 'dalam' && $tipe_mobil == 'avanza veloz') {
+                        $bbm_per_km = 1 / 12;
+                    } elseif ($jenis_perjalanan == 'luar' && $tipe_mobil == 'triton') {
+                        $bbm_per_km = 1 / 12;
+                    } elseif ($jenis_perjalanan == 'dalam' && $tipe_mobil == 'triton') {
+                        $bbm_per_km = 1 / 10;
+                    } elseif ($jenis_perjalanan == 'luar' && $tipe_mobil == 'avanza putih') {
+                        $bbm_per_km = 1 / 12;
+                    } elseif ($jenis_perjalanan == 'dalam' && $tipe_mobil == 'avanza putih') {
+                        $bbm_per_km = 1 / 13;
+                    }
+
+                    // Perkiraan BBM = Total KM * BBM per KM
+                    $perkiraan_bbm = round($total_km * $bbm_per_km);
+                    echo "<td>" . $perkiraan_bbm . "</td>";
                     echo "<td><img src='uploads/" . $row['foto'] . "' width='100' data-toggle='modal' data-target='#fotoModal' data-foto='uploads/" . $row['foto'] . "'></td>";
                     echo "<td><img src='uploads/" . $row['foto2'] . "' width='100' data-toggle='modal' data-target='#fotoModal' data-foto='uploads/" . $row['foto2'] . "'></td>";
-                    //echo "<td>" . $row['status_lap'] . "</td>";
                     echo "<td>";
                     echo "<a href='edit.php?id=" . $row['id'] . "' class='btn btn-primary'>Edit</a> ";
                     echo "<a href='delete.php?id=" . $row['id'] . "' class='btn btn-danger'>Delete</a>";
@@ -208,6 +252,8 @@
                     echo "</button>";
                     echo "</div>";
                     echo "<div class='modal-body'>";
+                    echo "<p>Lampu Depan: " . $row['no_polisi'] . "</p>";
+                    echo "<p>Lampu Sen Depan: " . $row['tipe_mobil'] . "</p>";
                     echo "<p>Lampu Depan: " . $row['lampu_depan'] . "</p>";
                     echo "<p>Lampu Sen Depan: " . $row['lampu_sen_depan'] . "</p>";
                     echo "<p>Lampu Sen Belakang: " . $row['lampu_sen_belakang'] . "</p>";
@@ -250,7 +296,35 @@
             }
 
             $result = $conn->query($query);
+            function calculateBBM($jenis_perjalanan, $tipe_mobil, $total_km)
+            {
+                $bbm_per_km = 0;
 
+                if ($jenis_perjalanan == 'luar') {
+                    if ($tipe_mobil == 'innova') {
+                        $bbm_per_km = 1 / 8;
+                    } elseif ($tipe_mobil == 'avanza veloz') {
+                        $bbm_per_km = 1 / 10;
+                    } elseif ($tipe_mobil == 'triton') {
+                        $bbm_per_km = 1 / 12;
+                    } elseif ($tipe_mobil == 'avanza putih') {
+                        $bbm_per_km = 1 / 12;
+                    }
+                } elseif ($jenis_perjalanan == 'dalam') {
+                    if ($tipe_mobil == 'innova') {
+                        $bbm_per_km = 1 / 10;
+                    } elseif ($tipe_mobil == 'avanza veloz') {
+                        $bbm_per_km = 1 / 12;
+                    } elseif ($tipe_mobil == 'triton') {
+                        $bbm_per_km = 1 / 10;
+                    } elseif ($tipe_mobil == 'avanza putih') {
+                        $bbm_per_km = 1 / 13;
+                    }
+                }
+
+                $perkiraan_bbm = round($total_km * $bbm_per_km); // Bulatkan hasil jika koma
+                return $perkiraan_bbm;
+            }
             echo "<h2 class='mt-3'>Semua Laporan Perjalanan</h2>";
 
             echo "<div class='search-form'>";
@@ -260,11 +334,13 @@
             echo "<div class='input-group-append'>";
             echo "<button class='btn btn-primary' type='submit'>Search</button>";
             echo "<button class='btn btn-danger ml-1' type='reset' onclick='window.location.href=\"dashboard.php\"'>Reset</button>";
-            echo "<a class='btn btn-success ml-1' href='download.php?search=$search_query'>Download PDF</a>";
+            echo "<a class='btn btn-success ml-1' href='download_pdf.php?search=$search_query'>Download PDF</a>";
+            echo "<a class='btn btn-success ml-1' href='download_excel.php?search=$search_query'>Download Excel</a>";
             echo "</div>";
             echo "</div>";
             echo "</form>";
             echo "</div>";
+
             if ($result->num_rows > 0) {
                 echo "<div class='table-responsive table-responsive-sm'>";
                 echo "<table class='table'>";
@@ -277,12 +353,12 @@
                 echo "<th>KM Awal</th>";
                 echo "<th>KM Akhir</th>";
                 echo "<th>Total KM</th>";
-                echo "<th>No Polisi</th>";
-                echo "<th>Tipe Mobil</th>";
+                echo "<th>Jenis Perjalanan</th>";
+                echo "<th>Perkiraan BBM</th>";
                 echo "<th>Foto KM Awal</th>";
                 echo "<th>Foto KM Akhir</th>";
                 //echo "<th>Status</th>";
-                echo "<th>Action</th>";
+                echo "<th>Actions</th>";
                 echo "</tr>";
                 echo "</thead>";
                 echo "<tbody>";
@@ -294,30 +370,27 @@
                     echo "<td>" . $row['alamat_tujuan'] . "</td>";
                     echo "<td>" . $row['km_awal'] . "</td>";
                     echo "<td>" . $row['km_akhir'] . "</td>";
-                    $total_km = $row['km_akhir'] - $row['km_awal']; // Menghitung total km
+                    $total_km = $row['km_akhir'] - $row['km_awal'];
+                    $jenis_perjalanan = $row['jenis_perjalanan'];
+                    $tipe_mobil = $row['tipe_mobil'];
+                    $perkiraan_bbm = calculateBBM($jenis_perjalanan, $tipe_mobil, $total_km);
+
                     echo "<td>" . $total_km . "</td>";
-                    echo "<td>" . $row['no_polisi'] . "</td>";
-                    echo "<td>" . $row['tipe_mobil'] . "</td>";
+                    echo "<td>" . $jenis_perjalanan . "</td>";
+                    echo "<td>" . $perkiraan_bbm . "</td>";
                     echo "<td><img src='uploads/" . $row['foto'] . "' width='100' data-toggle='modal' data-target='#fotoModal' data-foto='uploads/" . $row['foto'] . "'></td>";
                     echo "<td><img src='uploads/" . $row['foto2'] . "' width='100' data-toggle='modal' data-target='#fotoModal' data-foto='uploads/" . $row['foto2'] . "'></td>";
-                    echo "<td><a class='btn btn-success ml-1' href='download.php?id=" . $row['id'] . "'>Download</a></td>";
                     echo "<td>";
-                    //echo "<form method='POST' action='edit_status.php'>";
-                    //echo "<input type='hidden' name='laporan_id' value='" . $row['id'] . "'>";
-                    //echo "<select name='status' onchange='this.form.submit()'>";
-                    //echo "<option value='Pending'" . ($row['status_lap'] == 'Pending' ? 'selected' : '') . ">Pending</option>";
-                    //echo "<option value='Approved'" . ($row['status_lap'] == 'Approved' ? 'selected' : '') . ">Approved</option>";
-                    //echo "<option value='Rejected'" . ($row['status_lap'] == 'Rejected' ? 'selected' : '') . ">Rejected</option>";
-                    echo "</select>";
-                    echo "</form>";
+                    echo "<a href='download_pdf.php?id=" . $row['id'] . "' class='btn btn-success'>download</a>";
                     echo "</td>";
-                    echo "</tr>";
                     echo "</tr>"; // Tutup baris data saat ini
                     echo "<tr>"; // Baris baru untuk menu detail
-                    echo "<td colspan='11'>"; // Menggabungkan sel menjadi 1 kolom
+                    echo "<td colspan='12'>"; // Menggabungkan sel menjadi 1 kolom
                     echo "<details>";
                     echo "<summary><i class='fas fa-search'></i> Detail</summary>";
                     echo "<div class='details-content'>";
+                    echo "<p>No Polisi: " . $row['no_polisi'] . "</p>";
+                    echo "<p>Tipe Mobil: " . $row['tipe_mobil'] . "</p>";
                     echo "<p>Lampu Depan: " . $row['lampu_depan'] . "</p>";
                     echo "<p>Lampu Sen Depan: " . $row['lampu_sen_depan'] . "</p>";
                     echo "<p>Lampu Sen Belakang: " . $row['lampu_sen_belakang'] . "</p>";
@@ -343,7 +416,7 @@
                 echo "</table>";
                 echo "</div>";
             } else {
-                echo "<p>Belum ada laporan perjalanan.</p>";
+                echo "Belum ada laporan perjalanan.";
             }
         }
 
@@ -351,30 +424,29 @@
         ?>
     </div>
 
-    <!-- Modal untuk tampilan foto -->
     <div class="modal fade" id="fotoModal" tabindex="-1" role="dialog" aria-labelledby="fotoModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-body">
-                    <img id="modalFoto" src="" width="100%">
+                    <img src="" class="img-fluid" id="modalFoto">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-        // Menampilkan foto pada modal saat foto ditekan
-        $(document).ready(function () {
-            $('#fotoModal').on('show.bs.modal', function (event) {
-                var button = $(event.relatedTarget);
-                var fotoPath = button.data('foto');
-                var modal = $(this);
-                modal.find('#modalFoto').attr('src', fotoPath);
-            });
+        $('#fotoModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var foto = button.data('foto');
+            var modal = $(this);
+            modal.find('.modal-body img').attr('src', foto);
         });
     </script>
 </body>

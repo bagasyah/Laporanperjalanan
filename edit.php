@@ -137,7 +137,7 @@ if (isset($_POST['submit'])) {
     }
 
     // No new photo uploaded, update other fields in the database
-    $query = "UPDATE laporan SET tanggal='$tanggal', alamat_awal='$alamat_awal', alamat_tujuan='$alamat_tujuan', km_awal='$km_awal', km_akhir='$km_akhir', lampu_depan='$lampu_depan', lampu_sen_depan='$lampu_sen_depan', lampu_sen_belakang='$lampu_sen_belakang', lampu_rem='$lampu_rem', lampu_mundur='$lampu_mundur', bodi='$bodi', ban='$ban', pedal='$pedal', kopling='$kopling', gas_rem='$gas_rem', oli_mesin='$oli_mesin', klakson='$klakson', weaper='$weaper', air_weaper='$air_weaper', air_radiator='$air_radiator', note='$note' WHERE id='$id'";
+    $query = "UPDATE laporan SET tanggal='$tanggal', alamat_awal='$alamat_awal', alamat_tujuan='$alamat_tujuan', km_awal='$km_awal', km_akhir='$km_akhir', lampu_depan='$lampu_depan', lampu_sen_depan='$lampu_sen_depan', lampu_sen_belakang='$lampu_sen_belakang', lampu_rem='$lampu_rem', lampu_mundur='$lampu_mundur', bodi='$bodi', ban='$ban', pedal='$pedal', kopling='$kopling', gas_rem='$gas_rem', oli_mesin='$oli_mesin', klakson='$klakson', weaper='$weaper', air_weaper='$air_weaper', air_radiator='$air_radiator', note='$note', tipe_mobil='$tipe_mobil' WHERE id='$id'";
     if ($conn->query($query) === TRUE) {
         header("Location: dashboard.php");
         exit();
@@ -229,8 +229,16 @@ if (isset($_POST['submit'])) {
             </div>
             <div class="form-group">
                 <label for="tipe_mobil">Tipe Mobil:</label>
-                <input type="text" class="form-control" id="tipe_mobil" name="tipe_mobil"
-                    value="<?php echo $row['tipe_mobil']; ?>" required>
+                <select class="form-control" id="tipe_mobil" name="tipe_mobil" required>
+                    <option value="innova" <?php if ($row['tipe_mobil'] === 'innova')
+                        echo 'selected'; ?>>Innova</option>
+                    <option value="avanza veloz" <?php if ($row['tipe_mobil'] === 'avanza veloz')
+                        echo 'selected'; ?>>Avanza Veloz</option>
+                    <option value="triton" <?php if ($row['tipe_mobil'] === 'triton')
+                        echo 'selected'; ?>>Triton</option>
+                    <option value="avanza putih" <?php if ($row['tipe_mobil'] === 'avanza putih')
+                        echo 'selected'; ?>>Avanza Putih</option>
+                </select>
             </div>
             <h2>Navigasi</h2>
             <div class="form-group">
